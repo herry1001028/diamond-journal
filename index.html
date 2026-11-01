@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Survival Game 2 - 鑽石手帳</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        .glass-pill {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+
+<body class="py-8">
+
+    <!-- 主介面容器 -->
+    <main class="px-6 max-w-md mx-auto">
+        <!-- 標題與明細按鈕 -->
+        <div class="mb-6 flex justify-between items-end pt-2">
+            <div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">鑽石手帳</h1>
+                <p class="text-xs text-slate-500 mt-0.5">數據洞察</p>
+            </div>
+            <button onclick="openLedgerModal()" class="text-xs font-bold text-slate-600 hover:text-blue-600 transition flex items-center bg-white/50 px-3 py-1.5 rounded-full glass-pill">
+                鑽石明細 &gt;
+            </button>
+        </div>
+
+        <!-- 時間 Tab -->
+        <div class="grid grid-cols-3 gap-2 p-1.5 glass-card rounded-2xl mb-6">
+            <button onclick="switchTab('today')" id="tab-today" class="py-2.5 text-xs font-bold rounded-xl transition bg-slate-800 text-white shadow-sm">本日</button>
+            <button onclick="switchTab('week')" id="tab-week" class="py-2.5 text-xs font-bold rounded-xl transition text-slate-600 hover:bg-white/40">本週</button>
+            <button onclick="switchTab('month')" id="tab-month" class="py-2.5 text-xs font-bold rounded-xl transition text-slate-600 hover:bg-white/40">本月</button>
+        </div>
+
+        <!-- 核心數據主卡片 -->
+        <div class="glass-card rounded-3xl p-6 mb-6 relative overflow-hidden">
+            <div class="flex justify-between items-start mb-4">
+                <span id="date-label" class="text-xs font-bold text-slate-400">當日合計</span>
+                <span class="text-[10px] font-bold bg-blue-500/10 text-blue-600 px-2.5 py-1 rounded-full uppercase tracking-wider">TODAY</span>
+            </div>
+
+            <div class="flex items-baseline space-x-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-black text-xl">💎</div>
+                <div class="flex items-baseline space-x-2">
+                    <span id="total-diamonds" class="text-5xl font-black text-slate-800 tracking-tighter">0</span>
+                    <span class="text-sm font-bold text-slate-600">鑽石</span>
+                </div>
+            </div>
+
+            <div class="text-xs text-slate-500 font-medium bg-white/40 px-3.5 py-2 rounded-xl flex items-center space-x-1.5">
+                <span class="text-blue-500 font-bold">ƒ</span>
+                <span id="formula-text">寶箱收益 (0) + 鑽石獎勵次數 (0) × 2 = 0 鑽石</span>
+            </div>
+        </div>
+
+        <!-- 收益細節網格（4個大卡片） -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <!-- 寶箱領取 -->
+            <div onclick="openRecordModal()" class="glass-card rounded-3xl p-5 cursor-pointer hover:scale-[1.02] transition active:scale-95">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="text-base">📦</span>
+                    <span class="text-xs font-bold text-slate-600">寶箱領取</span>
+                </div>
+                <div class="flex items-baseline space-x-1 mb-1">
+                    <span id="chest-count" class="text-2xl font-black text-slate-800">0</span>
+                    <span class="text-xs font-bold text-slate-500">次</span>
+                </div>
+                <p class="text-[10px] text-slate-400">點擊記錄寶箱</p>
+            </div>
+
+            <!-- 鑽石獎勵 (廣告) -->
+            <div onclick="addAdReward()" class="glass-card rounded-3xl p-5 cursor-pointer hover:scale-[1.02] transition active:scale-95">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="text-base">💎</span>
+                    <span class="text-xs font-bold text-slate-600">鑽石獎勵</span>
+                </div>
+                <div class="flex items-baseline space-x-1 mb-1">
+                    <span id="ad-count" class="text-2xl font-black text-slate-800">0</span>
+                    <span class="text-xs font-bold text-slate-500">次</span>
+                </div>
+                <p class="text-[10px] text-slate-400">點擊領取廣告 +2</p>
+            </div>
+
+            <!-- 寶箱開出 -->
+            <div class="glass-card rounded-3xl p-5">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="text-base">🎁</span>
+                    <span class="text-xs font-bold text-slate-600">寶箱開出</span>
+                </div>
+                <div class="flex items-baseline space-x-1 mb-1">
+                    <span id="chest-diamonds" class="text-2xl font-black text-slate-800">0</span>
+                    <span class="text-xs font-bold text-slate-500">顆</span>
+                </div>
+                <p class="text-[10px] text-slate-400">寶箱內鑽石總數</p>
+            </div>
+
+            <!-- 固定獎勵 -->
+            <div class="glass-card rounded-3xl p-5">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="text-base">⭐</span>
+                    <span class="text-xs font-bold text-slate-600">固定獎勵</span>
+                </div>
+                <div class="flex items-baseline space-x-1 mb-1">
+                    <span id="fixed-diamonds" class="text-2xl font-black text-slate-800">0</span>
+                    <span class="text-xs font-bold text-slate-500">顆</span>
+                </div>
+                <p class="text-[10px] text-slate-400">廣告固定獎勵總數</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- 快速記帳彈窗 Modal -->
+    <div id="record-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-end justify-center">
+        <div class="glass-card w-full max-w-md rounded-t-3xl p-6 pb-10 bg-white/90">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800">記錄寶箱鑽石</h3>
+                <button onclick="closeRecordModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">請選擇這次開寶箱獲得的鑽石數量：</p>
+            
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <button onclick="addChestRecord(0)" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 rounded-2xl text-center font-bold text-slate-700 transition">
+                    📦 0 顆
+                </button>
+                <button onclick="addChestRecord(1)" class="py-3 px-4 bg-blue-50 hover:bg-blue-100 rounded-2xl text-center font-bold text-blue-600 transition">
+                    📦 1 顆
+                </button>
+                <button onclick="addChestRecord(2)" class="py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-2xl text-center font-bold text-white shadow-md transition">
+                    📦 2 顆
+                </button>
+            </div>
+
+            <button onclick="addAdReward()" class="w-full py-3 bg-indigo-50 hover:bg-indigo-100 rounded-2xl text-center font-bold text-indigo-600 mb-3 transition">
+                📺 觀看鑽石廣告 (+2 顆)
+            </button>
+            <button onclick="resetData()" class="w-full py-2 bg-rose-50 hover:bg-rose-100 rounded-2xl text-center text-xs font-bold text-rose-500 transition">
+                🗑️ 清空所有歷史紀錄
+            </button>
+        </div>
+    </div>
+
+    <!-- 鑽石明細彈窗 Modal -->
+    <div id="ledger-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-end justify-center">
+        <div class="glass-card w-full max-w-md rounded-t-3xl p-6 pb-10 bg-white/95 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800">鑽石領取明細</h3>
+                <button onclick="closeLedgerModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+            </div>
+            <div id="ledger-list" class="overflow-y-auto flex-1 space-y-2 pr-1">
+                <!-- 動態塞入明細 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let logs = JSON.parse(localStorage.getItem('pixel_diamond_logs')) || [];
+        let currentTab = 'today';
+
+        function saveData() {
+            localStorage.setItem('pixel_diamond_logs', JSON.stringify(logs));
+            updateUI();
+        }
+
+        function addChestRecord(amount) {
+            logs.unshift({
+                id: Date.now(),
+                type: 'chest',
+                amount: amount,
+                timestamp: new Date().getTime()
+            });
+            saveData();
+            closeRecordModal();
+        }
+
+        function addAdReward() {
+            logs.unshift({
+                id: Date.now(),
+                type: 'ad',
+                amount: 2,
+                timestamp: new Date().getTime()
+            });
+            saveData();
+            closeRecordModal();
+        }
+
+        function resetData() {
+            if(confirm('確定要清空所有紀錄嗎？')) {
+                logs = [];
+                saveData();
+                closeRecordModal();
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            ['today', 'week', 'month'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if(t === tab) {
+                    btn.className = "py-2.5 text-xs font-bold rounded-xl transition bg-slate-800 text-white shadow-sm";
+                } else {
+                    btn.className = "py-2.5 text-xs font-bold rounded-xl transition text-slate-600 hover:bg-white/40";
+                }
+            });
+            updateUI();
+        }
+
+        function updateUI() {
+            const now = new Date();
+            let filteredLogs = logs.filter(log => {
+                const logDate = new Date(log.timestamp);
+                if (currentTab === 'today') {
+                    return logDate.toDateString() === now.toDateString();
+                } else if (currentTab === 'week') {
+                    const diffTime = Math.abs(now - logDate);
+                    return (diffTime / (1000 * 60 * 60 * 24)) <= 7;
+                } else if (currentTab === 'month') {
+                    return logDate.getMonth() === now.getMonth() && logDate.getFullYear() === now.getFullYear();
+                }
+                return true;
+            });
+
+            let chestCount = 0;
+            let chestDiamonds = 0;
+            let adCount = 0;
+            let fixedDiamonds = 0;
+
+            filteredLogs.forEach(log => {
+                if(log.type === 'chest') {
+                    chestCount++;
+                    chestDiamonds += log.amount;
+                } else if(log.type === 'ad') {
+                    adCount++;
+                    fixedDiamonds += 2;
+                }
+            });
+
+            const totalDiamonds = chestDiamonds + fixedDiamonds;
+
+            document.getElementById('total-diamonds').innerText = totalDiamonds;
+            document.getElementById('chest-count').innerText = chestCount;
+            document.getElementById('chest-diamonds').innerText = chestDiamonds;
+            document.getElementById('ad-count').innerText = adCount;
+            document.getElementById('fixed-diamonds').innerText = fixedDiamonds;
+            document.getElementById('formula-text').innerText = `寶箱收益 (${chestDiamonds}) + 鑽石獎勵次數 (${adCount}) × 2 = ${totalDiamonds} 鑽石`;
+
+            const listContainer = document.getElementById('ledger-list');
+            listContainer.innerHTML = '';
+            if(filteredLogs.length === 0) {
+                listContainer.innerHTML = '<p class="text-center text-xs text-slate-400 py-6">目前沒有紀錄</p>';
+                return;
+            }
+
+            filteredLogs.forEach(log => {
+                const dateStr = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const title = log.type === 'chest' ? `📦 寶箱開出 (${log.amount} 顆)` : `📺 鑽石廣告 (+2 顆)`;
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-white/60 p-3 rounded-2xl text-xs";
+                div.innerHTML = `<span class="font-bold text-slate-700">${title}</span><span class="text-slate-400">${dateStr}</span>`;
+                listContainer.appendChild(div);
+            });
+        }
+
+        function openRecordModal() {
+            document.getElementById('record-modal').classList.remove('hidden');
+        }
+        function closeRecordModal() {
+            document.getElementById('record-modal').classList.add('hidden');
+        }
+        function openLedgerModal() {
+            document.getElementById('ledger-modal').classList.remove('hidden');
+            updateUI();
+        }
+        function closeLedgerModal() {
+            document.getElementById('ledger-modal').classList.add('hidden');
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
